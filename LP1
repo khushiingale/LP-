@@ -1,0 +1,882 @@
+//FIFO page replacement LP1
+#include <iostream>
+using namespace std;
+int main()
+{
+ int incomingStream[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1};
+ int pageFaults = 0;
+ int frames = 3;
+ int m, n, s, pages;
+ pages = sizeof(incomingStream)/sizeof(incomingStream[0]);
+ printf("Incoming \t Frame 1 \t Frame 2 \t Frame 3");
+ int temp[frames];
+ for(m = 0; m < frames; m++)
+ {
+ temp[m] = -1;
+ }
+ for(m = 0; m < pages; m++)
+ {
+ s = 0;
+ for(n = 0; n < frames; n++)
+ {
+ if(incomingStream[m] == temp[n])
+ {
+ s++;
+ pageFaults--;
+ }
+ }
+ pageFaults++;
+
+ if((pageFaults <= frames) && (s == 0))
+ {
+ temp[m] = incomingStream[m];
+ }
+ else if(s == 0)
+ {
+ temp[(pageFaults - 1) % frames] = incomingStream[m];
+ }
+
+ cout << "\n";
+ cout << incomingStream[m] << "\t\t\t";
+ for(n = 0; n < frames; n++)
+ {
+ if(temp[n] != -1)
+ cout << temp[n] << "\t\t\t";
+ else
+ cout << "- \t\t\t";
+ }
+ }
+ cout << "\n\nTotal Page Faults:\t" << pageFaults;
+ cout << "\nTotal Hits :\t" << pages - pageFaults;
+ return 0;
+}
+
+
+
+//OUTPUT:-
+/*
+Incoming Frame 1 Frame 2 Frame 3
+7 7 - -
+0 7 0 -
+1 7 0 1
+2 2 0 1
+0 2 0 1
+3 2 3 1
+0 2 3 0
+4 4 3 0
+2 4 2 0
+3 4 2 3
+0 0 2 3
+3 0 2 3
+2 0 2 3
+1 0 1 3
+Total Page Faults: 11
+Total Hits : 3
+*/
+
+
+
+
+//FCFS CPU Scheduling Algorithm
+#include <iostream>
+using namespace std;
+void findWaitingTime(int processes[], int n, int bt[], int wt[]) {
+ wt[0] = 0;
+ for (int i = 1; i < n; i++) {
+ wt[i] = bt[i - 1] + wt[i - 1];
+ }
+}
+void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[]) {
+ for (int i = 0; i < n; i++) {
+ tat[i] = bt[i] + wt[i];
+ }
+}
+void findAvgTime(int processes[], int n, int bt[], int wt[], int tat[]) {
+ int total_wt = 0, total_tat = 0;
+ findWaitingTime(processes, n, bt, wt);
+ findTurnAroundTime(processes, n, bt, wt, tat);
+ cout << "Processes Burst time Waiting time Turnaround time\n";
+ for (int i = 0; i < n; i++) {
+ total_wt += wt[i];
+ total_tat += tat[i];
+ cout << processes[i] << "\t\t" << bt[i] << "\t\t" << wt[i] << "\t\t" << tat[i] << "\n";
+ }
+ float s = (float)total_wt / (float)n;
+ float t = (float)total_tat / (float)n;
+ cout << "\nAverage waiting time = " << s << "\n";
+ cout << "Average turnaround time = " << t << "\n";
+}
+int main() {
+ int processes[] = {1, 2, 3};
+ int n = sizeof processes / sizeof processes[0];
+ int burst_time[] = {10, 5, 8};
+ int wt[n], tat[n];
+ findAvgTime(processes, n, burst_time, wt, tat);
+ return 0;
+}
+
+
+//OUTPUT:-
+/*
+Processes Burst time Waiting time Turnaround time
+1 10 0 10
+2 5 10 15
+3 8 15 23
+Average waiting time = 8.33333
+Average turnaround time = 16
+*/
+
+
+//SJE(preemptive) CPU Scheduling Algorithm
+#include <iostream>
+using namespace std;
+int main() {
+ int bt[10], i, j, wt[10], ft[10], temp, temp_id, p[10], st[10], tt[10];
+ int no;
+ int wat = 0, att = 0;
+ cout << "\nEnter the number of processes: ";
+ cin >> no;
+ for (i = 1; i <= no; i++) {
+ cout << "\nEnter the process id: ";
+ cin >> p[i];
+ }
+ for (i = 1; i <= no; i++) {
+ cout << "\nEnter burst time of process " << p[i] << ": ";
+ cin >> bt[i];
+ }
+ // Sorting
+ for (j = 1; j <= no - 1; j++) {
+ if (bt[j + 1] < bt[j]) {
+ temp = bt[j];
+ bt[j] = bt[j + 1];
+ bt[j + 1] = temp;
+ temp_id = p[j];
+ p[j] = p[j + 1];
+ p[j + 1] = temp_id;
+ }
+ }
+ cout << "\nSorted input is: ";
+ for (i = 1; i <= no; i++) {
+ cout << "\np" << p[i] << "\t\t" << bt[i];
+ }
+ for (i = 1; i <= no; i++) {
+ if (i == 1) {
+ st[i] = 0;
+ ft[i] = bt[i];
+ } else {
+ st[i] = st[i - 1] + bt[i - 1];
+ ft[i] = st[i] + bt[i];
+ }
+ }
+ cout << "\n\nBurstTime\tWaitingTime\tTurnAroundTime";
+ for (i = 1; i <= no; i++) {
+ wt[i] = st[i];
+ tt[i] = ft[i];
+ cout << "\n" << bt[i] << "\t\t" << wt[i] << "\t\t" << tt[i];
+ }
+ // Average waiting time
+ int sum = 0;
+ for (i = 1; i <= no; i++) {
+ sum += wt[i];
+ }
+ wat = sum / no;
+ sum = 0;
+ for (i = 1; i <= no; i++) {
+ sum += tt[i];
+ }
+ att = sum / no;
+ cout << "\n\nAverage waiting time: " << wat;
+ cout << "\nAverage turnaround time: " << att << "\n";
+ return 0;
+}
+
+
+//OUTPUT:-
+/*
+Enter the number of processes: 3
+Enter the process id: 1
+Enter the process id: 2
+Enter the process id: 3
+Enter burst time of process 1: 8
+Enter burst time of process 2: 3
+Enter burst time of process 3: 9
+Sorted input is:
+p2 3
+p1 8
+p3 9
+BurstTime WaitingTime TurnAroundTime
+3 0 3
+8 3 11
+9 11 20
+Average waiting time: 4
+Average turnaround time: 11
+*/
+
+
+//Priority CPU Scheduling Algorithm
+#include <iostream>
+using namespace std;
+void swap(int &a, int &b) {
+ int temp = a;
+ a = b;
+ b = temp;
+}
+int main() {
+ int n;
+ cout << "Enter Number of Processes: ";
+ cin >> n;
+ // Arrays for burst time (b), priority (p), and process id (index)
+ int b[n], p[n], index[n];
+ for (int i = 0; i < n; i++) {
+ cout << "Enter Burst Time and Priority Value for Process " << i + 1 << ": ";
+ cin >> b[i] >> p[i];
+ index[i] = i + 1;
+ }
+ for (int i = 0; i < n; i++) {
+ int a = p[i], m = i;
+ // Finding out the highest priority element and placing it at its desired position
+ for (int j = i; j < n; j++) {
+ if (p[j] > a) {
+ a = p[j];
+ m = j;
+ }
+ }
+ // Swapping processes
+ swap(p[i], p[m]);
+ swap(b[i], b[m]);
+ swap(index[i], index[m]);
+ }
+ // T stores the starting time of the process
+ int t = 0;
+ // Printing scheduled process
+ cout << "Order of process execution is\n";
+ for (int i = 0; i < n; i++) {
+ cout << index[i] << " is executed from " << t << " to " << t + b[i] << endl;
+ t += b[i];
+ }
+ cout << "\nProcess Id\tBurst Time\tWait Time\tTurnaround Time\n";
+ int wait_time = 0;
+ for (int i = 0; i < n; i++) {
+ cout << index[i] << "\t\t" << b[i] << "\t\t" << wait_time << "\t\t" << wait_time + b[i] << endl;
+ wait_time += b[i];
+ }
+ return 0;
+}
+
+
+//OUTPUT:-
+/*
+Enter Number of Processes: 3
+Enter Burst Time and Priority Value for Process 1: 10 2
+Enter Burst Time and Priority Value for Process 2: 5 0
+Enter Burst Time and Priority Value for Process 3: 8 1
+Order of process execution is
+1 is executed from 0 to 10
+3 is executed from 10 to 18
+2 is executed from 18 to 23
+Process Id Burst Time Wait Time Turnaround Time
+1 10 0 10
+3 8 10 18
+2 5 18 23
+*/
+
+
+//Round Robin CPU Scheduling
+#include <iostream>
+using namespace std;
+int main() {
+ int count, j, n, time, remain, flag = 0, time_quantum;
+ int wait_time = 0, turnaround_time = 0, at[10], bt[10], rt[10];
+ cout << "Enter Total Process:\t";
+ cin >> n;
+ remain = n;
+ for (count = 0; count < n; count++) {
+ cout << "Enter Arrival Time and Burst Time for Process " << count + 1 << ":\t";
+ cin >> at[count] >> bt[count];
+ rt[count] = bt[count];
+ }
+ cout << "Enter Time Quantum:\t";
+ cin >> time_quantum;
+ cout << "\n\nProcess\tTurnaround Time\tWaiting Time\n\n";
+ for (time = 0, count = 0; remain != 0;) {
+ if (rt[count] <= time_quantum && rt[count] > 0) {
+ time += rt[count];
+ rt[count] = 0;
+ flag = 1;
+ } else if (rt[count] > 0) {
+ rt[count] -= time_quantum;
+ time += time_quantum;
+ }
+ if (rt[count] == 0 && flag == 1) {
+ remain--;
+ cout << "P[" << count + 1 << "]\t\t" << time - at[count] << "\t\t" << time - at[count] - bt[count] <<
+"\n";
+ wait_time += time - at[count] - bt[count];
+ turnaround_time += time - at[count];
+ flag = 0;
+ }
+ if (count == n - 1)
+ count = 0;
+ else if (at[count + 1] <= time)
+ count++;
+ else
+ count = 0;
+ }
+ cout << "\nAverage Waiting Time = " << (float)wait_time / n << endl;
+ cout << "Average Turnaround Time = " << (float)turnaround_time / n << endl;
+ return 0;
+}
+
+
+//OUTPUT:-
+/*
+Enter Total Process: 4
+Enter Arrival Time and Burst Time for Process 1: 0 9
+Enter Arrival Time and Burst Time for Process 2: 1 5
+Enter Arrival Time and Burst Time for Process 3: 2 3
+Enter Arrival Time and Burst Time for Process 4: 3 4
+Enter Time Quantum: 5
+Process Turnaround Time Waiting Time
+P[2] 9 4
+P[3] 11 8
+P[4] 14 10
+P[1] 21 12
+Average Waiting Time = 8.5
+Average Turnaround Time = 13.75
+*/
+
+
+Understanding the connectivity of Raspberry-Pi
+/Beagle board circuit with temperature
+sensor.Write an application to read the
+environment temperature. If temperature crosses a
+threshold value, generate alerts using LEDs.
+#include <dht.h>
+#define DHTPIN A0 // Pin where the DHT11 is connected
+#define LED_PIN 13 // Pin where the LED is connected
+dht DHT;
+void setup() {
+ pinMode(LED_PIN, OUTPUT);
+ Serial.begin(9600);
+ delay(1000);
+}
+void loop() {
+ DHT.read11(DHTPIN);
+ Serial.print("Current humidity = ");
+ Serial.print(DHT.humidity);
+ Serial.print("%");
+ Serial.print(" temperature = ");
+ Serial.print(DHT.temperature);
+ Serial.println("C");
+ if (DHT.temperature > 30) {
+ digitalWrite(LED_PIN, HIGH); // LED on if temperature exceeds 30°C
+ } else {
+ digitalWrite(LED_PIN, LOW); // LED off if temperature is 30°C or below
+ }
+ delay(1000);
+}
+Understanding the connectivity of Raspberry-Pi
+Adriano with IR sensor. Write an
+application to detect obstacles and notify users
+using LEDs.
+int IRSensor = 2; // IR sensor is connected to pin 2
+int LED = 13; // LED is connected to pin 13
+void setup() {
+ pinMode(IRSensor, INPUT); // IR pin is set to give the input
+ pinMode(LED, OUTPUT); // LED pin is set to get the output
+}
+void loop() {
+ int statusSensor = digitalRead(IRSensor); // Read IR sensor value
+ if (statusSensor == 1) {
+ digitalWrite(LED, LOW); // LED will be off if obstacle is not detected
+ } else {
+ digitalWrite(LED, HIGH); // LED will be on if obstacle is detected
+ }
+}
+
+
+Problem Statement - Understanding the connectivity of Raspberry-Pi / Adriano with IR
+sensor. Write an application to detect obstacle and notify user using LEDs.
+
+int IRSensor = 2; //IR sensor is connected to pin 2
+int LED = 13; //LED is connected to pin 13
+
+void setup()
+{
+pinMode (IRSensor, INPUT); //IR pin is set to give the input
+pinMode (LED, OUTPUT); //LED pin is set to get the output
+}
+
+void loop()
+{
+int statusSensor = digitalRead (IRSensor); //Read IR sensor value
+
+if (statusSensor == 1)
+digitalWrite(LED, LOW); //LED will be off if obstacle is not
+detected
+else
+digitalWrite(LED, HIGH); //LED will be on if obstacle is detected
+
+}
+
+
+
+
+
+
+
+//C++ Pass1 and pass2
+#include <iostream>
+#include <vector>
+#include <sstream>
+#include <iomanip>
+#include <algorithm>
+using namespace std;
+map<string, int> motOpCode = {
+ {"MOV", 1}, {"A", 2}, {"S", 3}, {"M", 4},
+ {"D", 5}, {"AN", 6}, {"O", 7}, {"ADD", 8},
+ {"SUB", 9}, {"MUL", 10}, {"DIV", 11}, {"AND", 12},
+ {"OR", 13}, {"LOAD", 14}, {"STORE", 15}, {"DCR", 16},
+ {"INC", 17}, {"JMP", 18}, {"JNZ", 19}, {"HALT", 20}
+};
+map<string, int> motSize = {
+ {"MOV", 1}, {"A", 1}, {"S", 1}, {"M", 1},
+ {"D", 1}, {"AN", 1}, {"O", 1}, {"ADD", 1},
+ {"SUB", 2}, {"MUL", 2}, {"DIV", 2}, {"AND", 2},
+ {"OR ", 2}, {"LOAD", 3}, {"STORE", 3}, {"DCR", 1},
+ {"INC", 1}, {"JMP", 3}, {"JNZ", 3}, {"HALT", 1}
+};
+vector<string> l;
+vector<int> relativeAddress;
+vector<string> machineCode;
+vector<string> symbol;
+vector<string> symbolValue;
+int RA = 0;
+int current = 0;
+int count = 0;
+vector<string> temp;
+int main() {
+ int n;
+ cout << "Enter the number of instruction lines: ";
+ cin >> n;
+ for (int i = 0; i < n; i++) {
+ string instructions;
+ cout << "Enter instruction line " << i + 1 << ": ";
+ cin.ignore(); // Ignore newline left in the buffer
+ getline(cin, instructions);
+ l.push_back(instructions);
+ }
+ transform(l.begin(), l.end(), l.begin(), ::toupper);
+ for (int i = 0; i < n; i++) {
+ string x = l[i];
+ if (x.find("NEXT:") != string::npos) {
+ size_t found = x.find("NEXT:");
+ string a = x.substr(found, 4);
+ l[i] = x.substr(5);
+ symbol.push_back(a);
+ x = l[i];
+ if (motOpCode.find(x) != motOpCode.end()) {
+ int value = motOpCode[x];
+ int size = motSize[x];
+ string temp;
+ switch (to_string(size).length()) {
+ case 1: temp = "000" + to_string(size); break;
+ case 2: temp = "00" + to_string(size); break;
+ case 3: temp = "0" + to_string(size); break;
+ }
+ symbolValue.push_back(temp);
+ int previous = size;
+ RA += current;
+ current = previous;
+ relativeAddress.push_back(RA);
+ if (isalpha(x[0])) {
+ machineCode.push_back(to_string(value));
+ } else {
+ temp = x;
+ replace(temp.begin(), temp.end(), ' ', ',');
+ machineCode.push_back(to_string(value) + "," + temp);
+ }
+ } else {
+ cout << "Instruction is not in Op Code." << endl;
+ exit(0);
+ }
+ } else if (x.find(" ") != string::npos) {
+ size_t found = x.find(" ");
+ string a = x.substr(0, found);
+ if (motOpCode.find(a) != motOpCode.end()) {
+ int value = motOpCode[a];
+ int size = motSize[a];
+ int previous = size;
+ RA += current;
+ current = previous;
+ relativeAddress.push_back(RA);
+ if (isalpha(x[0])) {
+ machineCode.push_back(to_string(value));
+ } else {
+ temp = x;
+ replace(temp.begin(), temp.end(), ' ', ',');
+ machineCode.push_back(to_string(value) + "," + temp);
+ }
+ } else {
+ cout << "Instruction is not in Op Code." << endl;
+ exit(0);
+ }
+ } else {
+ if (motOpCode.find(x) != motOpCode.end()) {
+ int value = motOpCode[x];
+ int size = motSize[x];
+ int previous = size;
+ RA += current;
+ current = previous;
+ relativeAddress.push_back(RA);
+ machineCode.push_back(to_string(value));
+ } else {
+ cout << "Instruction is not in Op Code." << endl;
+ exit(0);
+ }
+ }
+ }
+ cout << "Symbol Table:\n";
+ cout << "\nSymbol Value(Address)\n";
+ for (int i = 0; i < symbol.size(); i++) {
+ cout << " " << setw(16) << left << symbol[i] << setw(10) << right << symbolValue[i] << endl;
+ }
+ cout << "\nPass-1 machine code output without the reference of the symbolic address:\n";
+ cout << "Relative Address Instruction OpCode\n";
+ for (int i = 0; i < n; i++) {
+ if (l[i].find("NEXT") != string::npos) {
+ cout << setw(20) << right << relativeAddress[i] << setw(30) << left << l[i] << setw(15) << right <<
+machineCode[i] << ", -" << endl;
+ } else {
+ cout << setw(20) << right << relativeAddress[i] << setw(30) << left << l[i] << setw(15) << right <<
+machineCode[i] << endl;
+ }
+ }
+ cout << "\nPass-2 output: Machine code output\n";
+ cout << "Relative Address Instruction OpCode\n";
+ for (int i = 0; i < n; i++) {
+ if (l[i].find("NEXT") != string::npos) {
+ for (int j = 0; j < symbol.size(); j++) {
+ if (symbol[j].find("NEXT") != string::npos) {
+ int pos = j;
+ cout << setw(20) << right << relativeAddress[i] << setw(30) << left << l[i] << setw(15) << right
+<< machineCode[i] << ", " << symbolValue[pos] << endl;
+ }
+ }
+ } else {
+ cout << setw(20) << right << relativeAddress[i] << setw(30) << left << l[i] << setw(15) << right <<
+machineCode[i] << endl;
+ }
+ }
+ return 0;
+}
+#Python Pass1 and pass2
+from sys import exit
+motOpCode = {
+ "MOV": 1, "A": 2, "S": 3, "M": 4, "D": 5, "AN": 6, "O": 7,
+ "ADD": 8, "SUB": 9, "MUL": 10, "DIV": 11, "AND": 12, "OR": 13,
+ "LOAD": 14, "STORE": 15, "DCR": 16, "INC": 17, "JMP": 18,
+ "JNZ": 19, "HALT": 20,
+}
+motSize = {
+ "MOV": 1, "A": 1, "S": 1, "M": 1, "D": 1, "AN": 1, "O": 1,
+ "ADD": 1, "SUB": 2, "MUL": 2, "DIV": 2, "AND": 2, "OR": 2,
+ "LOAD": 3, "STORE": 3, "DCR": 1, "INC": 1, "JMP": 3,
+ "JNZ": 3, "HALT": 1,
+}
+l = []
+relativeAddress = []
+machineCode = []
+symbol = []
+symbolValue = []
+RA = 0
+current = 0
+count = 0
+temp = []
+n = int(input("Enter the number of instruction lines: "))
+for i in range(n):
+ instructions = input("Enter instruction line {}: ".format(i + 1))
+ l.append(instructions)
+l = [x.upper() for x in l]
+for i in range(n):
+ x = l[i]
+ if "NEXT:" in x:
+ s1 = "".join(x)
+ a, b, c = s1.split()
+ a = a[:4]
+ l[i] = b + " " + c
+ symbol.append(a)
+ x = l[i]
+ if b in motOpCode:
+ value = motOpCode.get(b)
+ size = motSize.get(b)
+ temp = "{:04}".format(size)
+ else:
+ print("Instruction is not in Op Code.")
+ exit(0)
+ symbolValue.append(temp)
+ previous = size
+ RA += current
+ current = previous
+ relativeAddress.append(RA)
+ if c.isalpha():
+ machineCode.append(str(value))
+ else:
+ temp = ",".join(b[i:i+2] for i in range(0, len(b), 2))
+ machineCode.append(str(value) + "," + temp)
+ elif " " in x:
+ s1 = "".join(x)
+ a, b = s1.split()
+ if a in motOpCode:
+ value = motOpCode.get(a)
+ size = motSize.get(a)
+ previous = size
+ RA += current
+ current = previous
+ relativeAddress.append(RA)
+ if b.isalpha():
+ machineCode.append(str(value))
+ else:
+ temp = ",".join(b[i:i+2] for i in range(0, len(b), 2))
+ machineCode.append(str(value) + "," + temp)
+ else:
+ print("Instruction is not in Op Code.")
+ exit(0)
+ else:
+ if x in motOpCode:
+ value = motOpCode.get(x)
+ size = motSize.get(x)
+ previous = size
+ RA += current
+ current = previous
+ relativeAddress.append(RA)
+ machineCode.append(value)
+ else:
+ print("Instruction is not in Op Code.")
+ exit(0)
+print("Symbol Table:\n")
+print("\n Symbol Value(Address)")
+for i in range(len(symbol)):
+ print(" {:16} {}".format(symbol[i], symbolValue[i]))
+print("\nPass-1 machine code output without reference to the symbolic address:\n")
+print("Relative Address Instruction OpCode")
+for i in range(n):
+ if "NEXT" in l[i]:
+ print("{:<18} {:<17} {}, -".format(relativeAddress[i], l[i], machineCode[i]))
+ else:
+ print("{:<18} {:<17} {}".format(relativeAddress[i], l[i], machineCode[i]))
+print("\nPass-2 output: Machine code output\n")
+print("Relative Address Instruction OpCode")
+for i in range(n):
+ if "NEXT" in l[i]:
+ for j in range(len(symbol)):
+ if "NEXT" in symbol[j]:
+ pos = j
+ print("{:<18} {:<17} {}, {}".format(relativeAddress[i], l[i], machineCode[i], symbolValue[pos]))
+ else:
+ print("{:<18} {:<17} {}".format(relativeAddress[i], l[i], machineCode[i]))
+
+
+
+
+
+
+
+
+void FIFO()
+{
+int incomingStream[] = {1, 3, 0, 3, 5, 6, 3};
+int pageFaults = 0;
+int frames = 3;
+int m, n, s, pages;
+pages = sizeof(incomingStream)/sizeof(incomingStream[0]);
+printf(&quot;Incoming \t Frame 1 \t Frame 2 \t Frame 3&quot;);
+int temp[frames];
+for(m = 0; m &lt; frames; m++)
+{
+temp[m] = -1;
+}
+for(m = 0; m &lt; pages; m++)
+{
+s = 0;
+for(n = 0; n &lt; frames; n++)
+{
+if(incomingStream[m] == temp[n])
+{
+s++;
+pageFaults--;
+}
+}
+pageFaults++;
+if((pageFaults &lt;= frames) &amp;&amp; (s == 0))
+{
+temp[m] = incomingStream[m];
+}
+else if(s == 0)
+{
+temp[(pageFaults - 1) % frames] = incomingStream[m];
+
+}
+printf(&quot;\n&quot;);
+printf(&quot;%d\t\t\t&quot;,incomingStream[m]);
+for(n = 0; n &lt; frames; n++)
+{
+if(temp[n] != -1)
+printf(&quot; %d\t\t\t&quot;, temp[n]);
+else
+printf(&quot; - \t\t\t&quot;);
+}
+}
+printf(&quot;\nTotal Page Faults:\t%d\n&quot;, pageFaults);
+}
+
+
+
+
+void LRU()
+{
+int m, n, position, k, l;
+int a = 0, b = 0, page_fault = 0;
+int total_frames = 4;
+int frames[total_frames];
+int temp[total_frames];
+int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 3};
+int total_pages = sizeof(pages)/sizeof(pages[0]);
+for(m = 0; m &lt; total_frames; m++){
+frames[m] = -1;
+}
+for(n = 0; n &lt; total_pages; n++)
+{
+printf(&quot;%d: &quot;, pages[n]);
+a = 0, b = 0;
+for(m = 0; m &lt; total_frames; m++)
+{
+if(frames[m] == pages[n])
+{
+a = 1;
+b = 1;
+break;
+}
+}
+if(a == 0)
+{
+for(m = 0; m &lt; total_frames; m++)
+{
+if(frames[m] == -1)
+{
+frames[m] = pages[n];
+b = 1;
+page_fault++;
+
+break;
+}
+}
+}
+if(b == 0)
+{
+for(m = 0; m &lt; total_frames; m++)
+{
+temp[m] = 0;
+}
+for(k = n - 1, l = 0; l &lt;= total_frames - 1; l++, k--)
+{
+for(m = 0; m &lt; total_frames; m++)
+{
+if(frames[m] == pages[k])
+{
+temp[m] = 1;
+}
+}
+}
+for(m = 0; m &lt; total_frames; m++)
+{
+if(temp[m] == 0)
+position = m;
+}
+frames[position] = pages[n];
+page_fault++;
+}
+for(m = 0; m &lt; total_frames; m++)
+{
+printf(&quot;%d\t&quot;, frames[m]);
+}
+printf(&quot;\n&quot;);
+}
+printf(&quot;\nTotal Number of Page Faults:\t%d\n&quot;, page_fault);
+}
+
+
+
+
+
+void Optimal()
+{
+int flag1, flag2, flag3, i, j, k, position, max, faults = 0;
+int num_frames = 4;
+int frames[num_frames];
+int temp[num_frames];
+int inputStream[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 3};
+int num_pages = sizeof(inputStream) / sizeof(inputStream[0]);
+for(i = 0; i &lt; num_frames; i++){
+frames[i] = -1;
+}
+for(i = 0; i &lt; num_pages; i++){
+
+flag1 = flag2 = 0;
+for(j = 0; j &lt; num_frames; j++){
+if(frames[j] == inputStream[i]){
+flag1 = flag2 = 1;
+break;
+}
+}
+if(flag1 == 0){
+for(j = 0; j &lt; num_frames; j++){
+if(frames[j] == -1){
+faults++;
+frames[j] = inputStream[i];
+flag2 = 1;
+break;
+}
+}
+}
+if(flag2 == 0){
+flag3 =0;
+for(j = 0; j &lt; num_frames; j++){
+temp[j] = -1;
+for(k = i + 1; k &lt; num_pages; k++){
+if(frames[j] == inputStream[k]){
+temp[j] = k;
+break;
+}
+}
+}
+for(j = 0; j &lt; num_frames; j++){
+if(temp[j] == -1){
+position = j;
+flag3 = 1;
+break;
+
+}
+}
+if(flag3 ==0){
+max = temp[0];
+position = 0;
+for(j = 1; j &lt; num_frames; j++){
+if(temp[j] &gt; max){
+max = temp[j];
+position = j;
+}
+}
+}
+frames[position] = inputStream[i];
+faults++;
+}
+printf(&quot;\n&quot;);
+
+for(j = 0; j &lt; num_frames; j++){
+printf(&quot;%d\t&quot;, frames[j]);
+}
+}
+printf(&quot;\n\nTotal Page Faults = %d&quot;, faults);
+}
+
